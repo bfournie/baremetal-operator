@@ -1,0 +1,33 @@
+apiVersion: metal3.io/v1alpha1
+kind: FirmwareSchema
+metadata:
+  name: firmwareschema-sample
+status:
+ identifier: "VendorA-ModelT-X53897654123087"
+ hardwareVendor: "VendorA"
+ hardwareModel: "ModelT"
+ schema:
+    - name: "ProcVirtualization"
+      attribute_type: "Enumeration"
+      allowable_values:
+      - "Enabled"
+      - "Disabled"
+      read_only: false
+    - name: "ProcCPUCores"
+      attribute_type: "Integer"
+      lower_bound: 1
+      read_only: true
+      upper_bound: 100
+    - name: "SRIOV"
+      allowable_values:
+      - "Enabled"
+      - "Disabled"
+    - name: "SystemModelName"
+      attribute_type: "String"
+      max_length: 40
+      min_length: 0
+      read_only: true
+    - name: "SerialNumber"
+      attribute_type: "String"
+      max_length: 16
+      min_length: 0

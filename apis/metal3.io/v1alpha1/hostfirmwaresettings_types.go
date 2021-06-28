@@ -24,6 +24,7 @@ import (
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
 type SettingsMap map[string]string
+type DesiredSettingsMap map[string]intstr.IntOrString
 
 type SchemaReference struct {
 	// `namespace` is the namespace of the where the schema is stored.
@@ -40,7 +41,7 @@ type HostFirmwareSettingsSpec struct {
 	// contain the settings that can be modified (i.e. not ReadOnly), to
 	// facilitate making changes.
 	// +patchStrategy=merge
-	Settings map[string]intstr.IntOrString `json:"settings" required:"true"`
+	Settings DesiredSettingsMap `json:"settings" required:"true"`
 }
 
 // HostFirmwareSettingsStatus defines the observed state of HostFirmwareSettings

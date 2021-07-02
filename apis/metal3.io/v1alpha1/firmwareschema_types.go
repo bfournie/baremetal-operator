@@ -17,9 +17,8 @@ limitations under the License.
 package v1alpha1
 
 import (
-	"strconv"
-
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // Additional data describing the firmware setting
@@ -55,11 +54,12 @@ type SettingSchema struct {
 	Unique *bool `json:"unique,omitempty"`
 }
 
-// FirmwareSchemaStatus defines the observed state of FirmwareSchema
-type FirmwareSchemaStatus struct {
+// FirmwareSchemaSpec defines the desired state of FirmwareSchema
+type FirmwareSchemaSpec struct {
 
-	// Unique identifier for this schema
-	Name string `json:"name" required:"true"`
+	// The count of the number of times this schema is used by
+	// a HostFirmwareSettings resource
+	ReferenceCount int `json:"referenceCount" required:"true"`
 
 	// The hardware vendor associated with this schema
 	// +optional
@@ -81,11 +81,11 @@ type FirmwareSchema struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
-	Status FirmwareSchemaStatus `json:"status,omitempty"`
+	Spec FirmwareSchemaSpec `json:"spec,omitempty"`
 }
 
 // Check whether the setting's name and value is valid using the schema
-func (host *FirmwareSchema) CheckSettingIsValid(name string, value string, schemas map[string]SettingSchema) bool {
+func (host *FirmwareSchema) CheckSettingIsValid(name string, value intstr.IntOrString, schemas map[string]SettingSchema) bool {
 
 	schema, ok := schemas[name]
 	if !ok {
@@ -101,32 +101,28 @@ func (host *FirmwareSchema) CheckSettingIsValid(name string, value string, schem
 	switch schema.AttributeType {
 	case "Enumeration":
 		for _, av := range schema.AllowableValues {
-			if value == av {
+			if value.String() == av {
 				return true
 			}
 		}
 		return false
 
 	case "Integer":
-		num, err := strconv.Atoi(value)
-		if err != nil {
-			return false
-		}
 		if schema.LowerBound == nil || schema.UpperBound == nil {
 			// return true if no settings to check validity
 			return true
 		}
-		return (num >= *schema.LowerBound && num <= *schema.UpperBound)
+		return (value.IntValue() >= *schema.LowerBound && value.IntValue() <= *schema.UpperBound)
 
 	case "String":
 		if schema.MinLength == nil || schema.MaxLength == nil {
 			// return true if no settings to check validity
 			return true
 		}
-		return (len(value) >= *schema.MinLength && len(value) <= *schema.MaxLength)
+		return (len(value.String()) >= *schema.MinLength && len(value.String()) <= *schema.MaxLength)
 
 	case "Boolean":
-		return (value == "true" || value == "false")
+		return (value.String() == "true" || value.String() == "false")
 
 	case "Password":
 		// Prevent sets of password types

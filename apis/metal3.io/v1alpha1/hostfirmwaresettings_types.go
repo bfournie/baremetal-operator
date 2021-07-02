@@ -18,14 +18,12 @@ package v1alpha1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// HostFirmwareSettingsSpec defines the desired state of HostFirmwareSettings
-type HostFirmwareSettingsSpec struct {
-	Settings map[string]string `json:"settings" required:"true"`
-}
+type SettingsMap map[string]string
 
 type SchemaReference struct {
 	// `namespace` is the namespace of the where the schema is stored.
@@ -34,14 +32,26 @@ type SchemaReference struct {
 	Name string `json:"name"`
 }
 
+// HostFirmwareSettingsSpec defines the desired state of HostFirmwareSettings
+type HostFirmwareSettingsSpec struct {
+
+	// Settings are the desired firmware settings stored as name/value pairs.
+	// This will be populated with the actual firmware settings and only
+	// contain the settings that can be modified (i.e. not ReadOnly), to
+	// facilitate making changes.
+	// +patchStrategy=merge
+	Settings map[string]intstr.IntOrString `json:"settings" required:"true"`
+}
+
 // HostFirmwareSettingsStatus defines the observed state of HostFirmwareSettings
 type HostFirmwareSettingsStatus struct {
-	// FirmwareSchema describes each firmware Setting
-	FirmwareSchema SchemaReference `json:"schema,omitempty"`
+	// FirmwareSchema is a reference to the Schema used to describe each
+	// FirmwareSetting. By default, this will be a Schema in the same
+	// Namespace as the settings but it can be overwritten in the Spec
+	FirmwareSchema *SchemaReference `json:"schema,omitempty"`
 
-	// Settings are the firmware settings stored as name/value pairs
-	// +patchStrategy=merge
-	Settings map[string]string `json:"settings" required:"true"`
+	// Settings are the actual firmware settings stored as name/value pairs
+	Settings SettingsMap `json:"settings" required:"true"`
 }
 
 //+kubebuilder:object:root=true

@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func TestCheckSettingIsValid(t *testing.T) {
@@ -21,111 +22,116 @@ func TestCheckSettingIsValid(t *testing.T) {
 			Name:      "myfwschema",
 			Namespace: "myns",
 		},
-		Status: FirmwareSchemaStatus{
-			Name: "VendorA-ModelT-Q456TY347111222333",
+		Spec: FirmwareSchemaSpec{
+			ReferenceCount: 1,
 
 			Schema: make(map[string]SettingSchema),
 		},
 	}
-
-	fwSchema.Status.Schema["AssetTag"] = SettingSchema{AttributeType: "String",
+	fwSchema.Spec.Schema["AssetTag"] = SettingSchema{AttributeType: "String",
 		MinLength: &min_length, MaxLength: &max_length}
-	fwSchema.Status.Schema["ProcVirtualization"] = SettingSchema{AttributeType: "Enumeration",
+	fwSchema.Spec.Schema["ProcVirtualization"] = SettingSchema{AttributeType: "Enumeration",
 		AllowableValues: []string{"Enabled", "Disabled"}}
-	fwSchema.Status.Schema["NetworkBootRetryCount"] = SettingSchema{AttributeType: "Integer",
+	fwSchema.Spec.Schema["NetworkBootRetryCount"] = SettingSchema{AttributeType: "Integer",
 		LowerBound: &lower_bound, UpperBound: &upper_bound}
-	fwSchema.Status.Schema["SerialNumber"] = SettingSchema{AttributeType: "String",
+	fwSchema.Spec.Schema["SerialNumber"] = SettingSchema{AttributeType: "String",
 		MinLength: &min_length, MaxLength: &max_length, ReadOnly: &read_only}
-	fwSchema.Status.Schema["QuietBoot"] = SettingSchema{AttributeType: "Boolean"}
-	fwSchema.Status.Schema["SriovEnable"] = SettingSchema{} // fields intentionally excluded
+	fwSchema.Spec.Schema["QuietBoot"] = SettingSchema{AttributeType: "Boolean"}
+	fwSchema.Spec.Schema["SriovEnable"] = SettingSchema{} // fields intentionally excluded
 
 	for _, tc := range []struct {
 		Scenario string
 		Name     string
-		Value    string
+		Value    intstr.IntOrString
 		Expected bool
 	}{
 		{
 			Scenario: "StringTypePass",
 			Name:     "AssetTag",
-			Value:    "NewServer",
+			Value:    intstr.FromString("NewServer"),
 			Expected: true,
 		},
 		{
 			Scenario: "StringTypeFailUpper",
 			Name:     "AssetTag",
-			Value:    "NewServerPutInServiceIn2021",
+			Value:    intstr.FromString("NewServerPutInServiceIn2021"),
 			Expected: false,
 		},
 		{
 			Scenario: "StringTypeFailLower",
 			Name:     "AssetTag",
-			Value:    "",
+			Value:    intstr.FromString(""),
 			Expected: false,
 		},
 		{
 			Scenario: "EnumerationTypePass",
 			Name:     "ProcVirtualization",
-			Value:    "Disabled",
+			Value:    intstr.FromString("Disabled"),
 			Expected: true,
 		},
 		{
 			Scenario: "EnumerationTypeFail",
 			Name:     "ProcVirtualization",
-			Value:    "Foo",
+			Value:    intstr.FromString("Foo"),
 			Expected: false,
 		},
 		{
-			Scenario: "IntegerTypePass",
+			Scenario: "IntegerTypePassAsString",
 			Name:     "NetworkBootRetryCount",
-			Value:    "10",
+			Value:    intstr.FromString("10"),
+			Expected: true,
+		},
+		{
+			Scenario: "IntegerTypePassAsInt",
+			Name:     "NetworkBootRetryCount",
+			Value:    intstr.FromInt(10),
 			Expected: true,
 		},
 		{
 			Scenario: "IntegerTypeFailUpper",
 			Name:     "NetworkBootRetryCount",
-			Value:    "42",
+			Value:    intstr.FromString("42"),
 			Expected: false,
 		},
 		{
 			Scenario: "IntegerTypeFailLower",
 			Name:     "NetworkBootRetryCount",
-			Value:    "0",
+			Value:    intstr.FromInt(0),
 			Expected: false,
 		},
 		{
 			Scenario: "BooleanTypePass",
 			Name:     "QuietBoot",
-			Value:    "true",
+			Value:    intstr.FromString("true"),
 			Expected: true,
 		},
 		{
 			Scenario: "BooleanTypeFail",
 			Name:     "QuietBoot",
-			Value:    "Enabled",
+			Value:    intstr.FromString("Enabled"),
 			Expected: false,
 		},
 		{
 			Scenario: "ReadOnlyTypeFail",
 			Name:     "SerialNumber",
-			Value:    "42",
+			Value:    intstr.FromString("42"),
 			Expected: false,
 		},
 		{
 			Scenario: "MissingEnumerationField",
 			Name:     "SriovEnable",
-			Value:    "Disabled",
+			Value:    intstr.FromString("Disabled"),
 			Expected: true,
 		},
 		{
 			Scenario: "UnknownSettingFail",
 			Name:     "IceCream",
-			Value:    "Vanilla",
+			Value:    intstr.FromString("Vanilla"),
 			Expected: false,
 		},
 	} {
 		t.Run(tc.Scenario, func(t *testing.T) {
-			actual := fwSchema.CheckSettingIsValid(tc.Name, tc.Value, fwSchema.Status.Schema)
+			actual := fwSchema.CheckSettingIsValid(tc.Name, tc.Value, fwSchema.Spec.Schema)
 			assert.Equal(t, tc.Expected, actual)
 		})
 	}

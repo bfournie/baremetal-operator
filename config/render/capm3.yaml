@@ -898,8 +898,8 @@ spec:
             type: string
           metadata:
             type: object
-          status:
-            description: FirmwareSchemaStatus defines the observed state of FirmwareSchema
+          spec:
+            description: FirmwareSchemaSpec defines the desired state of FirmwareSchema
             properties:
               hardwareModel:
                 description: The hardware model associated with this schema
@@ -907,9 +907,9 @@ spec:
               hardwareVendor:
                 description: The hardware vendor associated with this schema
                 type: string
-              name:
-                description: Unique identifier for this schema
-                type: string
+              referenceCount:
+                description: The count of the number of times this schema is used by a HostFirmwareSettings resource
+                type: integer
               schema:
                 additionalProperties:
                   description: Additional data describing the firmware setting
@@ -953,7 +953,7 @@ spec:
                 description: Map of firmware name to schema
                 type: object
             required:
-            - name
+            - referenceCount
             - schema
             type: object
         type: object
@@ -1002,7 +1002,11 @@ spec:
             properties:
               settings:
                 additionalProperties:
-                  type: string
+                  anyOf:
+                  - type: integer
+                  - type: string
+                  x-kubernetes-int-or-string: true
+                description: Settings are the desired firmware settings stored as name/value pairs. This will be populated with the actual firmware settings and only contain the settings that can be modified (i.e. not ReadOnly), to facilitate making changes.
                 type: object
             required:
             - settings
@@ -1011,7 +1015,7 @@ spec:
             description: HostFirmwareSettingsStatus defines the observed state of HostFirmwareSettings
             properties:
               schema:
-                description: FirmwareSchema describes each firmware Setting
+                description: FirmwareSchema is a reference to the Schema used to describe each FirmwareSetting. By default, this will be a Schema in the same Namespace as the settings but it can be overwritten in the Spec
                 properties:
                   name:
                     description: '`name` is the reference to the schema.'
@@ -1026,7 +1030,7 @@ spec:
               settings:
                 additionalProperties:
                   type: string
-                description: Settings are the firmware settings stored as name/value pairs
+                description: Settings are the actual firmware settings stored as name/value pairs
                 type: object
             required:
             - settings

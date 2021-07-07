@@ -57,10 +57,6 @@ type SettingSchema struct {
 // FirmwareSchemaSpec defines the desired state of FirmwareSchema
 type FirmwareSchemaSpec struct {
 
-	// The count of the number of times this schema is used by
-	// a HostFirmwareSettings resource
-	ReferenceCount int `json:"referenceCount" required:"true"`
-
 	// The hardware vendor associated with this schema
 	// +optional
 	HardwareVendor string `json:"hardwareVendor,omitempty"`

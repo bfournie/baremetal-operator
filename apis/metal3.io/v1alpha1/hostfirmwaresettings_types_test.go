@@ -23,11 +23,10 @@ func TestCheckSettingIsValid(t *testing.T) {
 			Namespace: "myns",
 		},
 		Spec: FirmwareSchemaSpec{
-			ReferenceCount: 1,
-
 			Schema: make(map[string]SettingSchema),
 		},
 	}
+
 	fwSchema.Spec.Schema["AssetTag"] = SettingSchema{AttributeType: "String",
 		MinLength: &min_length, MaxLength: &max_length}
 	fwSchema.Spec.Schema["ProcVirtualization"] = SettingSchema{AttributeType: "Enumeration",

@@ -907,9 +907,6 @@ spec:
               hardwareVendor:
                 description: The hardware vendor associated with this schema
                 type: string
-              referenceCount:
-                description: The count of the number of times this schema is used by a HostFirmwareSettings resource
-                type: integer
               schema:
                 additionalProperties:
                   description: Additional data describing the firmware setting
@@ -953,7 +950,6 @@ spec:
                 description: Map of firmware name to schema
                 type: object
             required:
-            - referenceCount
             - schema
             type: object
         type: object

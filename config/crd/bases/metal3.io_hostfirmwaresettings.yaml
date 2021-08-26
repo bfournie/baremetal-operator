@@ -59,7 +59,7 @@ spec:
                 description: Fields used to manage reading Firmware settings from
                   provisioner
                 properties:
-                  lastUpdate:
+                  lastUpdated:
                     description: Stores the time that resource was last updated by
                       hostfirmwaresettings_controller
                     format: date-time

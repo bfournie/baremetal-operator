@@ -45,7 +45,7 @@ type ProvisioningInfo struct {
 	Update bool `json:"update"`
 
 	// Stores the time that resource was last updated by hostfirmwaresettings_controller
-	LastUpdated *metav1.Time `json:"lastUpdate,omitempty"`
+	LastUpdated *metav1.Time `json:"lastUpdated,omitempty"`
 }
 
 // HostFirmwareSettingsSpec defines the desired state of HostFirmwareSettings
@@ -69,7 +69,7 @@ type HostFirmwareSettingsStatus struct {
 	// Settings are the actual firmware settings stored as name/value pairs
 	Settings SettingsMap `json:"settings" required:"true"`
 
-	// Fields used to manage reading Firmware settings from provisioner 
+	// Fields used to manage reading Firmware settings from provisioner
 	ProvStatus ProvisioningInfo `json:"provStatus,omitempty"`
 }
 
